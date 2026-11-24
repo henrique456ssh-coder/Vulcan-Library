@@ -36,11 +36,21 @@ local amount = window:AddSlider({
     end,
 })
 
+local message = window:AddTextBox({
+    Text = "Mensagem",
+    Placeholder = "Digite aqui...",
+    Default = "",
+    Callback = function(value)
+        print("Texto digitado", value)
+    end,
+})
+
 window:AddButton({
     Text = "Restaurar",
     Callback = function()
         effect:Set(false)
         amount:Set(5)
+        message:Set("")
     end,
 })
 
