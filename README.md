@@ -1,6 +1,6 @@
 # Vulcan Library
 
-Biblioteca de interface em Luau para carregar no executor com `loadstring` e `game:HttpGet`. A janela usa tema vulcânico, arraste por mouse ou toque, toggles, botões com impressão digital e sliders com valor dentro da barra. Versão `1.1.0`.
+Biblioteca de interface em Luau para carregar no executor com `loadstring` e `game:HttpGet`. A janela usa tema vulcânico, arraste por mouse ou toque, toggles, botões com impressão digital, campos de texto e sliders com valor dentro da barra. Versão `1.2.0`.
 
 ## Índice
 
@@ -8,6 +8,7 @@ Biblioteca de interface em Luau para carregar no executor com `loadstring` e `ga
 - [Criar a janela](#criar-a-janela)
 - [Toggle](#toggle)
 - [Botão](#botão)
+- [Campo de texto](#campo-de-texto)
 - [Slider](#slider)
 - [Controlar a janela](#controlar-a-janela)
 - [Exemplo completo](#exemplo-completo)
@@ -91,7 +92,40 @@ local button = window:AddButton({
 | `Text` | `string` | `"Botão"` | Texto exibido no botão. |
 | `Callback` | `function()` | Opcional | Ação executada ao pressionar. |
 
-`AddButton` retorna a instância `TextButton`. Toggles e sliders retornam tabelas com `Get` e `Set`.
+`AddButton` retorna a instância `TextButton`. Toggles, campos de texto e sliders retornam tabelas com `Get` e `Set`.
+
+## Campo de texto
+
+`AddTextBox` cria um campo editável com título à esquerda. Clique ou toque na caixa para digitar. O callback recebe o texto quando o campo perde o foco, inclusive ao pressionar Enter, se o valor tiver mudado desde a última confirmação.
+
+```lua
+local textBox = window:AddTextBox({
+    Text = "Mensagem",
+    Placeholder = "Digite aqui...",
+    Default = "",
+    Callback = function(value)
+        print("Texto digitado", value)
+    end,
+})
+```
+
+| Opção | Tipo | Padrão | Efeito |
+| --- | --- | --- | --- |
+| `Text` | `string` | `"Texto"` | Título ao lado da caixa editável. |
+| `Placeholder` | `string` | `"Digite aqui..."` | Dica exibida quando o campo está vazio. |
+| `Default` | `string` | `""` | Conteúdo inicial. |
+| `Callback` | `function(value)` | Opcional | Recebe o texto confirmado. |
+
+### Ler e mudar o texto
+
+```lua
+print(textBox:Get())            -- Lê o texto atual, inclusive durante a edição.
+textBox:Set("Olá")             -- Atualiza e chama o callback se o valor confirmado mudou.
+textBox:Set("Novo texto", true) -- Atualiza silenciosamente.
+textBox:Set("")                -- Limpa o campo.
+```
+
+O campo aceita texto vazio, preserva espaços e mantém o conteúdo ao receber foco. A edição é de uma linha. `Default` define o conteúdo inicial sem chamar o callback. Uma atualização silenciosa também passa a ser o valor confirmado.
 
 ## Slider
 
@@ -189,7 +223,7 @@ window:Destroy()
 
 ## Exemplo completo
 
-Copie este bloco inteiro para carregar a biblioteca e criar uma janela com toggle, slider e botão de restauração.
+Copie este bloco inteiro para carregar a biblioteca e criar uma janela com toggle, campo de texto, slider e botão de restauração.
 
 ```lua
 local Vulcan = loadstring(game:HttpGet("https://raw.githubusercontent.com/henrique456ssh-coder/Vulcan-Library/main/VulcanLibrary.luau"))()
@@ -217,11 +251,21 @@ local slider = window:AddSlider({
     end,
 })
 
+local textBox = window:AddTextBox({
+    Text = "Mensagem",
+    Placeholder = "Digite aqui...",
+    Default = "",
+    Callback = function(value)
+        print("Texto digitado", value)
+    end,
+})
+
 window:AddButton({
     Text = "Restaurar",
     Callback = function()
         toggle:Set(false)
         slider:Set(5)
+        textBox:Set("")
     end,
 })
 ```
@@ -237,6 +281,9 @@ Carregar [VulcanLibrary.luau](VulcanLibrary.luau) retorna a tabela da biblioteca
 | `window:AddToggle(config)` | `Text`, `Default` e `Callback(enabled)`. |
 | `window:AddSlider(config)` | `Text`, `Min`, `Max`, `Step`, `Default`, `Format(value)` e `Callback(value)`. |
 | `window:AddButton(config)` | `Text` e `Callback()`. Retorna o `TextButton`. |
+| `window:AddTextBox(config)` | `Text`, `Placeholder`, `Default` e `Callback(value)`. |
+| `textBox:Get()` | Retorna o texto atual. |
+| `textBox:Set(value, silent)` | Atualiza o conteúdo e o valor confirmado do campo. |
 | `toggle:Get()` | Retorna o estado booleano atual. |
 | `toggle:Set(value, silent)` | Atualiza o estado do toggle. |
 | `slider:Get()` | Retorna o valor numérico atual. |
@@ -246,7 +293,7 @@ Carregar [VulcanLibrary.luau](VulcanLibrary.luau) retorna a tabela da biblioteca
 | `window:SetMinimized(value)` | `true` recolhe a janela e `false` expande. |
 | `window:Destroy()` | Fecha a janela e desconecta os eventos de entrada. |
 
-Toggles e sliders retornam controles com `Get()` e `Set(value, silent)`. Passe `true` como segundo argumento de `Set` para atualizar o controle sem chamar o callback. Os callbacks também são chamados quando o jogador altera o valor na interface.
+Toggles, sliders e campos de texto retornam controles com `Get()` e `Set(value, silent)`. Passe `true` como segundo argumento de `Set` para atualizar o controle sem chamar o callback. Toggles e sliders chamam o callback durante as alterações. Campos de texto confirmam a edição ao perder o foco.
 
 Use nomes diferentes em `CreateWindow` para manter várias janelas abertas. Executar novamente com o mesmo nome substitui a janela criada pela biblioteca.
 

@@ -2,7 +2,7 @@ local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
-local Vulcan = { Version = "1.1.0" }
+local Vulcan = { Version = "1.2.0" }
 local HEADER_HEIGHT = 52
 local CONTROL_HEIGHT = 40
 local CONTROL_GAP = 8
@@ -419,6 +419,79 @@ function Vulcan.CreateWindow(options)
             notify(config.Callback)
         end)
         return row
+    end
+
+    function window:AddTextBox(config)
+        config = config or {}
+        assert(type(config) == "table", "AddTextBox espera uma tabela de opções.")
+        local text = config.Text or "Texto"
+        local placeholder = config.Placeholder or "Digite aqui..."
+        local value = config.Default or ""
+        assert(type(text) == "string", "Text deve ser um texto.")
+        assert(type(placeholder) == "string", "Placeholder deve ser um texto.")
+        assert(config.Default == nil or type(config.Default) == "string", "Default deve ser um texto.")
+        assert(config.Callback == nil or type(config.Callback) == "function", "Callback deve ser uma função.")
+
+        local row = addRow("Frame", "TextBox")
+        label(row, text, UDim2.fromOffset(12, 0), UDim2.new(0.4, -12, 1, 0), 14, Enum.TextXAlignment.Left)
+        local input = create("TextBox", row, {
+            Name = "Input",
+            Position = UDim2.new(0.4, 6, 0, 7),
+            Size = UDim2.new(0.6, -18, 1, -14),
+            BackgroundColor3 = Color3.fromRGB(43, 29, 30),
+            BorderSizePixel = 0,
+            Text = value,
+            PlaceholderText = placeholder,
+            PlaceholderColor3 = Color3.fromRGB(165, 129, 124),
+            TextColor3 = TEXT_COLOR,
+            Font = Enum.Font.GothamMedium,
+            TextSize = 13,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            ClearTextOnFocus = false,
+            MultiLine = false,
+            TextWrapped = false,
+        })
+        round(input, 4)
+        create("UIPadding", input, {
+            PaddingLeft = UDim.new(0, 8),
+            PaddingRight = UDim.new(0, 8),
+        })
+        local borderColor = Color3.fromRGB(122, 61, 49)
+        local border = create("UIStroke", input, {
+            ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+            Thickness = 1,
+            Color = borderColor,
+            Transparency = 0.16,
+        })
+
+        local control = {}
+        function control:Get()
+            return input.Text
+        end
+        function control:Set(nextValue, silent)
+            assert(type(nextValue) == "string", "TextBox:Set espera um texto.")
+            if disposed then
+                return
+            end
+            local changed = value ~= nextValue
+            value = nextValue
+            input.Text = nextValue
+            if changed and not silent then
+                notify(config.Callback, value)
+            end
+        end
+        input.Focused:Connect(function()
+            if not disposed then
+                TweenService:Create(border, SLIDE, { Color = THEME_ACCENT }):Play()
+            end
+        end)
+        input.FocusLost:Connect(function()
+            if not disposed then
+                TweenService:Create(border, SLIDE, { Color = borderColor }):Play()
+                control:Set(input.Text)
+            end
+        end)
+        return control
     end
 
     function window:AddSlider(config)
