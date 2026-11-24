@@ -1,5 +1,17 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Vulcan = require(ReplicatedStorage:WaitForChild("VulcanLibrary"))
+local libraryUrl = "https://raw.githubusercontent.com/henrique456ssh-coder/Vulcan-Library/main/VulcanLibrary.luau"
+assert(type(loadstring) == "function", "Este executor precisa disponibilizar loadstring.")
+
+local downloaded, source = pcall(function()
+    return game:HttpGet(libraryUrl)
+end)
+assert(downloaded, "Falha ao baixar a Vulcan Library. " .. tostring(source))
+assert(type(source) == "string" and #source > 0, "O download da Vulcan Library retornou vazio.")
+
+local chunk, compileError = loadstring(source, "@VulcanLibrary")
+assert(chunk, "Falha ao compilar a Vulcan Library. " .. tostring(compileError))
+local loaded, Vulcan = pcall(chunk)
+assert(loaded, "Falha ao iniciar a Vulcan Library. " .. tostring(Vulcan))
+assert(type(Vulcan) == "table" and type(Vulcan.CreateWindow) == "function", "Resposta inválida da biblioteca.")
 
 local window = Vulcan.CreateWindow({ Title = "Vulcan Library" })
 local effect = window:AddToggle({
@@ -31,3 +43,5 @@ window:AddButton({
         amount:Set(5)
     end,
 })
+
+return window
