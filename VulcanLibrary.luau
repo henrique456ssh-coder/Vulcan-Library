@@ -2,7 +2,7 @@ local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
-local Vulcan = {}
+local Vulcan = { Version = "1.1.0" }
 local HEADER_HEIGHT = 52
 local CONTROL_HEIGHT = 40
 local CONTROL_GAP = 8
@@ -60,14 +60,16 @@ end
 
 function Vulcan.CreateWindow(options)
     options = options or {}
+    assert(type(options) == "table", "CreateWindow espera uma tabela de opções.")
     local title = options.Title or "Vulcan Library"
     local name = options.Name or "VulcanLibrary"
     assert(type(title) == "string" and title ~= "", "Title deve ser um texto.")
     assert(type(name) == "string" and name ~= "", "Name deve ser um texto.")
 
     local player = Players.LocalPlayer
-    assert(player, "Crie a janela em um LocalScript.")
-    local playerGui = player:WaitForChild("PlayerGui")
+    assert(player, "Vulcan Library requer o cliente Roblox com um jogador conectado.")
+    local playerGui = player:WaitForChild("PlayerGui", 15)
+    assert(playerGui, "PlayerGui indisponível. Aguarde o jogo carregar e execute novamente.")
     local previous = playerGui:FindFirstChild(name)
     if previous then
         assert(previous:IsA("ScreenGui") and previous:GetAttribute("VulcanWindow"), "Name já pertence a outra interface.")
@@ -128,7 +130,7 @@ function Vulcan.CreateWindow(options)
     round(ember, 3)
     gradient(ember, 65, Color3.fromRGB(255, 220, 148), Color3.fromRGB(255, 153, 65), THEME_ACCENT)
 
-    create("TextLabel", header, {
+    local titleLabel = create("TextLabel", header, {
         Name = "Title",
         Position = UDim2.fromOffset(49, 0),
         Size = UDim2.new(1, -141, 1, 0),
@@ -607,6 +609,21 @@ function Vulcan.CreateWindow(options)
         ended:Disconnect()
         focusLost:Disconnect()
     end)
+
+    function window:SetTitle(nextTitle)
+        assert(type(nextTitle) == "string" and nextTitle ~= "", "SetTitle espera um texto.")
+        if not disposed then
+            titleLabel.Text = nextTitle
+        end
+    end
+
+    function window:SetVisible(visible)
+        assert(type(visible) == "boolean", "SetVisible espera um booleano.")
+        if not disposed then
+            stopDrag()
+            gui.Enabled = visible
+        end
+    end
 
     function window:SetMinimized(minimized)
         assert(type(minimized) == "boolean", "SetMinimized espera um booleano.")
